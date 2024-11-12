@@ -1,30 +1,25 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db');
+const tasksRouter = require('./routes/tasks');
+const authRouter = require('./routes/auth');
 
-// Load environment variables
+const app = express();
+
 dotenv.config();
 
+// Middleware
+app.use(express.json());
+
+// Routes
+app.use('/api/tasks', tasksRouter);
+
 // Connect to MongoDB
-connectDB();
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected successfully'))
+  .catch((error) => console.error('MongoDB connection error:', error));
 
-// Initialize Express app
-const app = express();
-app.use(express.json()); // Middleware to parse JSON
+app.use('/api/auth', authRouter);
 
-// Import routes
-const taskRoutes = require('./routes/tasks');
-
-// Use routes
-app.use('/api/tasks', taskRoutes); // Mount task routes at /api/tasks
-
-// Sample route
-app.get('/', (req, res) => {
-  res.send('Task Management System API');
-});
-
-// Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app; // Exporting app without calling listen
